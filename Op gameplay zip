@@ -1,0 +1,121 @@
+import pygame
+import random
+
+# Initialize Pygame
+pygame.init()
+
+# Screen dimensions
+SCREEN_WIDTH = 800
+SCREEN_HEIGHT = 600
+screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+pygame.display.set_caption("Simple Action Game")
+
+# Colors
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
+RED = (255, 0, 0)
+
+# Player settings
+player_width = 50
+player_height = 50
+player_x = SCREEN_WIDTH // 2 - player_width // 2
+player_y = SCREEN_HEIGHT - player_height - 10
+player_speed = 5
+
+# Bullet settings
+bullet_width = 10
+bullet_height = 20
+bullet_speed = 7
+bullets = []
+
+# Enemy settings
+enemy_width = 50
+enemy_height = 50
+enemy_speed = 3
+enemies = []
+
+# Clock
+clock = pygame.time.Clock()
+
+# Function to draw the player
+def draw_player(x, y):
+    pygame.draw.rect(screen, WHITE, [x, y, player_width, player_height])
+
+# Function to draw a bullet
+def draw_bullet(x, y):
+    pygame.draw.rect(screen, RED, [x, y, bullet_width, bullet_height])
+
+# Function to draw an enemy
+def draw_enemy(x, y):
+    pygame.draw.rect(screen, BLACK, [x, y, enemy_width, enemy_height])
+
+# Function to check collisions
+def check_collision(bullet, enemy):
+    if (bullet.x < enemy.x + enemy_width and
+        bullet.x + bullet_width > enemy.x and
+        bullet.y < enemy.y + enemy_height and
+        bullet.y + bullet_height > enemy.y):
+        return True
+    return False
+
+# Game loop
+running = True
+while running:
+    screen.fill((0, 0, 0))
+
+    # Event handling
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_SPACE:
+                bullets.append(pygame.Rect(player_x + player_width // 2 - bullet_width // 2, player_y, bullet_width, bullet_height))
+
+    # Player movement
+    keys = pygame.key.get_pressed()
+    if keys[pygame.K_LEFT] and player_x > 0:
+        player_x -= player_speed
+    if keys[pygame.K_RIGHT] and player_x < SCREEN_WIDTH - player_width:
+        player_x += player_speed
+
+    # Bullet movement
+    for bullet in bullets:
+        bullet.y -= bullet_speed
+        if bullet.y < 0:
+            bullets.remove(bullet)
+
+    # Enemy spawning
+    if random.randint(1, 100) == 1:
+        enemy_x = random.randint(0, SCREEN_WIDTH - enemy_width)
+        enemy_y = 0
+        enemies.append(pygame.Rect(enemy_x, enemy_y, enemy_width, enemy_height))
+
+    # Enemy movement
+    for enemy in enemies:
+        enemy.y += enemy_speed
+        if enemy.y > SCREEN_HEIGHT:
+            enemies.remove(enemy)
+
+    # Collision detection
+    for bullet in bullets:
+        for enemy in enemies:
+            if check_collision(bullet, enemy):
+                bullets.remove(bullet)
+                enemies.remove(enemy)
+                break
+
+    # Draw everything
+    draw_player(player_x, player_y)
+    for bullet in bullets:
+        draw_bullet(bullet.x, bullet.y)
+    for enemy in enemies:
+        draw_enemy(enemy.x, enemy.y)
+
+    # Update the display
+    pygame.display.flip()
+
+    # Cap the frame rate
+    clock.tick(60)
+
+# Quit Pygame
+pygame.quit()
